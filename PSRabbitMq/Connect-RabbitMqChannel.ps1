@@ -94,9 +94,25 @@
 
         Write-Progress -id 10 -Activity 'Create SCMB Connection' -Status 'Attempting connection to channel' -PercentComplete 80
 
-        #Actively declare the Exchange (as non-autodelete, non-durable)
-        if($ExchangeType -and ![string]::IsNullOrEmpty($Exchange)) {
-            $ExchangeResult = $Channel.ExchangeDeclare($Exchange,$ExchangeType.ToLower())
+        
+            #if the ExchangeType is specified along with another property for non-default exchange ''
+        if(  $ExchangeType -and ![string]::IsNullOrEmpty($Exchange) -and
+               (![string]::IsNullOrEmpty($Durable) -or
+               ![string]::IsNullOrEmpty($AutoDelete) )
+        )
+        {
+            if([string]::IsNullOrEmpty($Durable)) {
+                $Durable=$false
+            }
+            
+            if([string]::IsNullOrEmpty($AutoDelete)){
+                $AutoDelete = $false
+            }
+
+            #https://www.rabbitmq.com/releases/rabbitmq-dotnet-client/v3.6.6/rabbitmq-dotnet-client-3.6.6-client-htmldoc/html/
+            #ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string,object> arguments)
+            #Actively declare the Exchange (as non-autodelete, non-durable)
+            $ExchangeResult = $Channel.ExchangeDeclare($Exchange,$ExchangeType.ToLower(),$Durable,$AutoDelete,$null)
         }
 
         #Create a personal queue or bind to an existing queue
@@ -110,14 +126,21 @@
         }
         else
         {
-            $QueueResult = $Channel.QueueDeclare()
+            if($PSEdition -eq 'core') { 
+                #zero constructor is not impl in .Net Core lib
+                $QueueResult = $Channel.QueueDeclare()
+            }
         }
+        $Arguments = [System.Collections.Generic.Dictionary[string,System.Object]]::new()
         if($PsCmdlet.ParameterSetName.Contains('BasicQoS')) {
-         $channel.BasicQos($prefetchSize,$prefetchCount,$global)
+            #Core version only has overload with 4 params.
+            $channel.BasicQos($prefetchSize,$prefetchCount,$global,$Arguments)
         }
         #Bind our queue to the exchange
         foreach ($keyItem in $key) {
-            $Channel.QueueBind($QueueName, $Exchange, $KeyItem)
+            if (![string]::IsNullOrEmpty($Exchange)) {
+                $Channel.QueueBind($QueueName, $Exchange, $KeyItem, $Arguments)
+            }
         }
 
         Write-Progress -id 10 -Activity 'Create SCMB Connection' -Status ('Conneccted to channel: {0}, {1}, {2}' -f $QueueName, $Exchange, $KeyItem) -PercentComplete 90

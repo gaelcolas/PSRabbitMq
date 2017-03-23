@@ -61,16 +61,20 @@
 
     Try
     {
+        switch($PSEdition) {
+            'core'  {$GetFieldOrProp = 'GetProperty'}
+            Default {$GetFieldOrProp = 'GetField'}
+        }
 
         Write-Progress -id 10 -Activity 'Create SCMB Connection' -Status 'Building connection' -PercentComplete 30
 
         $Factory = New-Object RabbitMQ.Client.ConnectionFactory
         
         #Add the hostname
-        $HostNameProp = [RabbitMQ.Client.ConnectionFactory].GetField("HostName")
+        $HostNameProp = [RabbitMQ.Client.ConnectionFactory].$GetFieldOrProp("HostName")
         $HostNameProp.SetValue($Factory, $ComputerName)
 
-        $TcpPortProp = [RabbitMQ.Client.ConnectionFactory].GetField("Port")
+        $TcpPortProp = [RabbitMQ.Client.ConnectionFactory].$GetFieldOrProp("Port")
         if ( $PSBoundParameters.ContainsKey('Ssl') -and 
              $Ssl -ne [Security.Authentication.SslProtocols]::None -and
              !$PSBoundParameters.ContainsKey('Port')

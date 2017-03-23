@@ -224,7 +224,7 @@
 
             #Create our consumer
             $Consumer = New-Object RabbitMQ.Client.QueueingBasicConsumer($Channel)
-            $Channel.BasicConsume($QueueResult.QueueName, [bool](!$RequireAck), $Consumer) > $Null
+            $Channel.BasicConsume($QueueName, [bool](!$RequireAck),'consumerTag', $true , $Exclusive, $Arguments, $Consumer) > $Null
 
             $Delivery = New-Object RabbitMQ.Client.Events.BasicDeliverEventArgs
 

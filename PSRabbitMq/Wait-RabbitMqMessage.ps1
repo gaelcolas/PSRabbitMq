@@ -176,7 +176,11 @@
 
         #Create our consumer
         $Consumer = New-Object RabbitMQ.Client.QueueingBasicConsumer($Channel)
-        $Channel.BasicConsume($QueueName, [bool](!$RequireAck), $Consumer) > $Null
+        #in Core version of lib:
+        #string BasicConsume(string queue, bool noAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary[string,System.Object] arguments, RabbitMQ.Client.IBasicConsumer consumer)
+
+        #$Channel.BasicConsume($QueueName, [bool](!$RequireAck), $Consumer) > $Null
+        $Channel.BasicConsume($QueueName, [bool](!$RequireAck),'consumerTag', $true , $Exclusive, $Arguments, $Consumer) > $Null
 
         $Delivery = New-Object RabbitMQ.Client.Events.BasicDeliverEventArgs
 

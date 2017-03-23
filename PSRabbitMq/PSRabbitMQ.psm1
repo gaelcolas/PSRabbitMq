@@ -1,4 +1,9 @@
-﻿#Get public and private function definition files.
+﻿switch ($PSedition) {
+    'Core'  {Add-Type -Path $PSScriptRoot/lib/core/RabbitMQ.Client.dll -ErrorAction Stop}
+    Default {Add-Type -Path $PSScriptRoot/lib/Desktop/RabbitMQ.Client.dll -ErrorAction Stop}
+}
+
+#Get public and private function definition files.
     $Public  = Get-ChildItem $PSScriptRoot\*.ps1 -ErrorAction SilentlyContinue 
     $Private = Get-ChildItem $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue 
 
