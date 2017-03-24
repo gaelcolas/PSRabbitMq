@@ -286,7 +286,7 @@
             $Body = [System.Text.Encoding]::UTF8.GetBytes($Serialized)
         }
 
-        $Channel.BasicPublish($Exchange, $Key, $BodyProps, $Body)
+        $Channel.BasicPublish($Exchange, $Key, $false, $BodyProps, $Body) #Mandatory = $false
     }
     end
     {
